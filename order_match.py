@@ -1,4 +1,3 @@
-#!/Users/regan/Desktop/codeDemos/181101_code/abnormal_order_181101/venv/bin/python
 import datetime
 
 import numpy as np
@@ -36,12 +35,7 @@ def conditions_optimization(conditions):
 
 
 def order_scheduler(conditions, recievers):
-    """
-    订单分流策略，A\B订单固定概率分流，C订单根据全\专\基地老师的任务完成情况随机分流
-    :param conditions:
-    :param recievers:
-    :return:
-    """
+    """订单分流策略，A\B订单固定概率分流，C订单根据全\专\基地老师的任务完成情况随机分流"""
     conditions = conditions_optimization(conditions)
     if conditions['order_level'] == 'A':
         recievers[0]['orders'].append(conditions)
@@ -65,16 +59,7 @@ def order_scheduler(conditions, recievers):
 
 
 def teachers_allocator(recievers, units, units_spare, conn, start_status, month_start=None):
-    """
-    创建并维护全/专/基/平老师信息队列，根据订单选择符合条件老师
-    :param recievers:
-    :param units:
-    :param units_spare:
-    :param conn:
-    :param start_status:
-    :param month_start:
-    :return:
-    """
+    """创建并维护全/专/基/平老师信息队列，根据订单选择符合条件老师"""
     if start_status:
         units, units_spare = teachers_unit_init(conn)
     teacher_list, units, units_spare = order_consumer(recievers, units, units_spare, conn)
@@ -90,12 +75,7 @@ def teachers_allocator(recievers, units, units_spare, conn, start_status, month_
 
 
 def team_add_allocator(units, new_teachers):
-    """
-    检测新增老师并添加到相应老师信息队列
-    :param units:
-    :param new_teachers:
-    :return:
-    """
+    """检测新增老师并添加到相应老师信息队列"""
     new_teachers['bookVersion'] = new_teachers.bookVersion.apply(book_version_encode)
     new_teachers_full = new_teachers[new_teachers.job_type == 2]
     new_teachers_profession = new_teachers[new_teachers.job_type == 3]
@@ -141,13 +121,7 @@ def teachers_increment_collector(conn):
 
 
 def teacher_unit_status_check(recievers, units, month_start):
-    """
-    老师当前任务完成情况检查
-    :param recievers:
-    :param units:
-    :param month_start:
-    :return:
-    """
+    """老师当前任务完成情况检查"""
     now = datetime.datetime.now()
     start = month_start
     interval_days = (now-start).days
@@ -188,12 +162,7 @@ def inspect_timer(start_time, mode=None):
 
 
 def teachers_unit_update(units, units_spare):
-    """
-    过滤信息队列中任务完成的老师
-    :param units:
-    :param units_spare:
-    :return:
-    """
+    """过滤信息队列中任务完成的老师"""
     for uind in range(4):
         tind_list = []
         if units[uind].shape[0] > 0:
@@ -228,24 +197,12 @@ def teacher_transfer(units, units_spare, tind_list, ind):
 
 
 def order_consumer(recievers, units, units_spare, conn):
-    """
-    消费订单
-    :param recievers:
-    :param units:
-    :param units_spare:
-    :param conn:
-    :return:
-    """
+    """消费订单"""
     teacher_ids = []
-    teachers_idle_time, teachers_course_time = None, None
-    for rec in recievers:
-        if rec['orders']:
-            teachers_idle_time, teachers_course_time = get_idle_time(rec['orders'][0]['classtime'],
-                                                                     rec['orders'][0]['week'], conn)
-            break
     for ind in range(4):
         if recievers[ind]['orders']:
             order_info = recievers[ind]['orders'].pop()
+            teachers_idle_time, teachers_course_time = get_idle_time(order_info['classtime'], order_info['week'], conn)
             teacher_ids, units[ind], units_spare[ind] = teacher_selector(order_info, teachers_idle_time,
                                            teachers_course_time, units[ind], units_spare[ind], teacher_ids)
             if len(teacher_ids) < 3:
@@ -275,16 +232,7 @@ def get_idle_time(specified_time, specified_week, conn):
 
 
 def teacher_selector(order_info, idle_time, course_time, unit, unit_spare, teacher_list):
-    """
-    选择合适老师
-    :param order_info:
-    :param idle_time:
-    :param course_time:
-    :param unit:
-    :param unit_spare:
-    :param teacher_list:
-    :return:
-    """
+    """选择合适老师"""
     no_specified = True
     teacher_list, unit, specified_status = query_operator(order_info, unit, idle_time, course_time, teacher_list,
                                                           method='strict', is_spare=False, is_specified=no_specified)
@@ -335,15 +283,7 @@ def query_operator(order_info, unit, idle_time, course_time,
 
 
 def condition_compare(order_info, teacher_info, idle_time, course_time, mode=None):
-    """
-    订单条件匹配
-    :param order_info:
-    :param teacher_info:
-    :param idle_time:
-    :param course_time:
-    :param mode:
-    :return:
-    """
+    """订单条件匹配"""
     state = False
     if order_info['grade'] == teacher_info['term'] \
             and order_info['subject'] == teacher_info['subject'] \
